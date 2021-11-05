@@ -24,6 +24,7 @@
 #include <openrct2/sprites.h>
 #include <openrct2/windows/Intent.h>
 #include <vector>
+#include <openrct2-ui/interface/Dropdown.h>
 
 static constexpr const rct_string_id WINDOW_TITLE = STR_SELECT_DESIGN;
 static constexpr const int32_t WH = 431;
@@ -44,6 +45,9 @@ enum {
     WIDX_TRACK_PREVIEW,
     WIDX_ROTATE,
     WIDX_TOGGLE_SCENERY,
+    WIDX_SORT_TYPE,
+    WIDX_SORT_TYPE_DROPDOWN,
+    WIDX_SORT_TRACKS,
 };
 
 validate_global_widx(WC_TRACK_DESIGN_LIST, WIDX_ROTATE);
@@ -53,14 +57,31 @@ static rct_widget window_track_list_widgets[] = {
     MakeWidget({  4,  18}, {218,  13}, WindowWidgetType::TableHeader, WindowColour::Primary  , STR_SELECT_OTHER_RIDE                                       ),
     MakeWidget({  4,  32}, {124,  13}, WindowWidgetType::TextBox,     WindowColour::Secondary                                                              ),
     MakeWidget({130,  32}, { 92,  13}, WindowWidgetType::Button,       WindowColour::Primary  , STR_OBJECT_SEARCH_CLEAR                                     ),
-    MakeWidget({  4,  46}, {218, 381}, WindowWidgetType::Scroll,       WindowColour::Primary  , SCROLL_VERTICAL,         STR_CLICK_ON_DESIGN_TO_BUILD_IT_TIP),
+    MakeWidget({  4,  61}, {218, 381}, WindowWidgetType::Scroll,       WindowColour::Primary  , SCROLL_VERTICAL,         STR_CLICK_ON_DESIGN_TO_BUILD_IT_TIP),
     MakeWidget({224,  18}, {372, 219}, WindowWidgetType::FlatBtn,      WindowColour::Primary                                                                ),
     MakeWidget({572, 405}, { ROTATE_AND_SCENERY_BUTTON_SIZE, ROTATE_AND_SCENERY_BUTTON_SIZE}, WindowWidgetType::FlatBtn,      WindowColour::Primary  , SPR_ROTATE_ARROW,        STR_ROTATE_90_TIP                  ),
     MakeWidget({572, 381}, { ROTATE_AND_SCENERY_BUTTON_SIZE, ROTATE_AND_SCENERY_BUTTON_SIZE}, WindowWidgetType::FlatBtn,      WindowColour::Primary  , SPR_SCENERY,             STR_TOGGLE_SCENERY_TIP             ),
+    MakeWidget({  4,  46}, {162,  12}, WindowWidgetType::DropdownMenu, WindowColour::Secondary                                                                ), // current sort type
+    MakeWidget({155,  47}, { 11,  10}, WindowWidgetType::Button,   WindowColour::Secondary, STR_DROPDOWN_GLYPH), // track sort dropdown button
+    MakeWidget({168,  46}, { 54,  12}, WindowWidgetType::Button,   WindowColour::Secondary, STR_SORT), // sort button
     WIDGETS_END,
 };
 
 // clang-format on
+
+enum
+{
+    SORT_TYPE_EXCITEMENT,
+    SORT_TYPE_INTENSITY,
+    SORT_TYPE_NAUSEA,
+    DROPDOWN_LIST_COUNT,
+};
+
+static constexpr const rct_string_id track_sort_type_string_mapping[DROPDOWN_LIST_COUNT] = {
+    STR_EXCITEMENT,
+    STR_INTENSITY,
+    STR_NAUSEA,
+};
 
 constexpr uint16_t TRACK_DESIGN_INDEX_UNLOADED = UINT16_MAX;
 
@@ -76,8 +97,12 @@ private:
     std::unique_ptr<TrackDesign> _loadedTrackDesign;
     std::vector<uint8_t> _trackDesignPreviewPixels;
 
+    int32_t _trackSortType = SORT_TYPE_EXCITEMENT;
+    std::vector<uint32_t> _trackSortValues;
+
     void FilterList()
     {
+        
         _filteredTrackIds.clear();
 
         // Nothing to filter, so fill the list with all indices
@@ -202,6 +227,50 @@ private:
         return false;
     }
 
+    void SortList()
+    {
+        _trackSortValues.clear();
+        switch (_trackSortType)
+        {
+            case SORT_TYPE_EXCITEMENT:
+            {
+                for (auto&& t : _trackDesigns)
+                {
+                    const auto& trackDesign = track_design_open(t.path);
+                    if (trackDesign != nullptr)
+                        _trackSortValues.push_back(static_cast<uint32_t>(trackDesign.get()->excitement));
+                }
+
+                std::vector<std::pair<uint32_t, uint32_t>> sortValues{};
+                for (uint32_t i{ 0 }; i < _trackSortValues.size(); ++i)
+                    sortValues.push_back({ _trackSortValues[i], i });
+
+                std::sort(
+                    sortValues.begin(), sortValues.end(),
+                    [](const std::pair<uint32_t, uint32_t>& p1, const std::pair<uint32_t, uint32_t>& p2) -> bool {
+                        return p1.first < p2.first;
+                    });
+
+                std::vector<track_design_file_ref> sortedTrackDesigns{};
+                for (uint32_t i{ 0 }; i < sortValues.size(); ++i)
+                    sortedTrackDesigns.push_back(_trackDesigns[sortValues[i].second]); 
+
+                std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
+                break;
+            }
+            case SORT_TYPE_INTENSITY:
+            {
+
+                break;
+            }
+            case SORT_TYPE_NAUSEA:
+            {
+
+                break;
+            }
+        }
+    }
+
 public:
     void OnOpen() override
     {
@@ -209,7 +278,8 @@ public:
         window_track_list_widgets[WIDX_FILTER_STRING].string = _filterString;
         widgets = window_track_list_widgets;
         enabled_widgets = (1ULL << WIDX_CLOSE) | (1ULL << WIDX_FILTER_STRING) | (1ULL << WIDX_FILTER_CLEAR)
-            | (1ULL << WIDX_ROTATE) | (1ULL << WIDX_TOGGLE_SCENERY);
+            | (1ULL << WIDX_ROTATE) | (1ULL << WIDX_TOGGLE_SCENERY) | (1ULL << WIDX_SORT_TRACKS) | (1ULL << WIDX_SORT_TYPE)
+            | (1ULL << WIDX_SORT_TYPE_DROPDOWN);
 
         if (gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)
         {
@@ -238,6 +308,8 @@ public:
 
         _loadedTrackDesign = nullptr;
         _loadedTrackDesignIndex = TRACK_DESIGN_INDEX_UNLOADED;
+
+        _trackSortType = SORT_TYPE_EXCITEMENT;
     }
 
     void OnClose() override
@@ -315,6 +387,66 @@ public:
                 FilterList();
                 Invalidate();
                 break;
+            case WIDX_SORT_TRACKS:
+                // list_information_type = _trackSortType; ~hjort96 probably not...
+                // selected_list_item = -1;
+                SortList();
+                Invalidate();
+                break;
+        }
+    }
+
+    void OnMouseDown(rct_widgetindex widgetIndex) override
+    {
+        if (widgetIndex == WIDX_SORT_TYPE_DROPDOWN)
+        {
+            const auto& widget = widgets[widgetIndex - 1];
+
+            int32_t lastType = DROPDOWN_LIST_COUNT - 1;
+
+            int32_t numItems = 0;
+            int32_t selectedIndex = -1;
+
+            for (int32_t type = SORT_TYPE_EXCITEMENT; type <= lastType; type++)
+            {
+                if (type == _trackSortType)
+                {
+                    selectedIndex = numItems;
+                }
+
+                gDropdownItemsFormat[numItems] = STR_DROPDOWN_MENU_LABEL;
+                gDropdownItemsArgs[numItems] = track_sort_type_string_mapping[type];
+                numItems++;
+            }
+            WindowDropdownShowTextCustomWidth(
+                { windowPos.x + widget.left, windowPos.y + widget.top }, widget.height(), colours[1], 0,
+                Dropdown::Flag::StayOpen, numItems, widget.width() - 3);
+            if (selectedIndex != -1)
+            {
+                Dropdown::SetChecked(selectedIndex, true);
+            }
+        }
+    }
+
+    void OnDropdown(rct_widgetindex widgetIndex, int32_t dropdownIndex) override
+    {
+        if (widgetIndex == WIDX_SORT_TYPE_DROPDOWN)
+        {
+            if (dropdownIndex == -1)
+                return;
+
+            int32_t sortType = SORT_TYPE_EXCITEMENT;
+            uint32_t arg = static_cast<uint32_t>(gDropdownItemsArgs[dropdownIndex]);
+            for (size_t i = 0; i < std::size(track_sort_type_string_mapping); i++)
+            {
+                if (arg == track_sort_type_string_mapping[i])
+                {
+                    sortType = static_cast<int32_t>(i);
+                }
+            }
+
+            _trackSortType = sortType;
+            Invalidate();
         }
     }
 
@@ -375,6 +507,8 @@ public:
 
     void OnPrepareDraw() override
     {
+        widgets[WIDX_SORT_TYPE].text = track_sort_type_string_mapping[_trackSortType];
+
         rct_string_id stringId = STR_NONE;
         rct_ride_entry* entry = get_ride_entry(_window_track_list_item.EntryIndex);
 
