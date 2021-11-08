@@ -97,8 +97,7 @@ private:
     std::unique_ptr<TrackDesign> _loadedTrackDesign;
     std::vector<uint8_t> _trackDesignPreviewPixels;
 
-    int32_t _trackSortType = SORT_TYPE_EXCITEMENT;
-    std::vector<uint32_t> _trackSortValues;
+    int32_t _trackSortType;
 
     void FilterList()
     {
@@ -220,45 +219,67 @@ private:
         return false;
     }
 
+    template<typename T> void SortAlg(const std::vector<T>& trackSortValues, std::vector<std::pair<T, uint32_t>>& sortValues)
+    {
+        for (uint32_t i{ 0 }; i < trackSortValues.size(); ++i)
+            sortValues.push_back({ trackSortValues[i], i });
+
+        std::sort(
+            std::begin(sortValues), std::end(sortValues),
+            [](const auto& p1, const auto& p2) -> bool {
+                return p1.first > p2.first;
+            });
+
+        std::vector<track_design_file_ref> sortedTrackDesigns{};
+        for (uint32_t i{ 0 }; i < sortValues.size(); ++i)
+            sortedTrackDesigns.push_back(_trackDesigns[sortValues[i].second]); 
+
+        std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
+    }
+
     void SortList()
     {
-        _trackSortValues.clear();
+        TrackDesign dummy{};
         switch (_trackSortType)
         {
             case SORT_TYPE_EXCITEMENT:
             {
+                std::vector<decltype(dummy.excitement)> trackSortValues{};
                 for (auto&& t : _trackDesigns)
                 {
-                    const auto& trackDesign = track_design_open(t.path);
+                    const auto& trackDesign{ track_design_open(t.path) };
                     if (trackDesign != nullptr)
-                        _trackSortValues.push_back(static_cast<uint32_t>(trackDesign.get()->excitement));
+                        trackSortValues.push_back(trackDesign.get()->excitement);
                 }
-
-                std::vector<std::pair<uint32_t, uint32_t>> sortValues{};
-                for (uint32_t i{ 0 }; i < _trackSortValues.size(); ++i)
-                    sortValues.push_back({ _trackSortValues[i], i });
-
-                std::sort(
-                    sortValues.begin(), sortValues.end(),
-                    [](const std::pair<uint32_t, uint32_t>& p1, const std::pair<uint32_t, uint32_t>& p2) -> bool {
-                        return p1.first < p2.first;
-                    });
-
-                std::vector<track_design_file_ref> sortedTrackDesigns{};
-                for (uint32_t i{ 0 }; i < sortValues.size(); ++i)
-                    sortedTrackDesigns.push_back(_trackDesigns[sortValues[i].second]); 
-
-                std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
+                std::vector<std::pair<decltype(dummy.excitement), uint32_t>> sortValues{};
+                SortAlg(trackSortValues, sortValues);
                 break;
             }
             case SORT_TYPE_INTENSITY:
             {
 
+                std::vector<decltype(dummy.intensity)> trackSortValues{};
+                for (auto&& t : _trackDesigns)
+                {
+                    const auto& trackDesign{ track_design_open(t.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back(trackDesign.get()->intensity);
+                }
+                std::vector<std::pair<decltype(dummy.intensity), uint32_t>> sortValues{};
+                SortAlg(trackSortValues, sortValues);
                 break;
             }
             case SORT_TYPE_NAUSEA:
             {
-
+                std::vector<decltype(dummy.nausea)> trackSortValues{};
+                for (auto&& t : _trackDesigns)
+                {
+                    const auto& trackDesign{ track_design_open(t.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back(trackDesign.get()->nausea);
+                }
+                std::vector<std::pair<decltype(dummy.nausea), uint32_t>> sortValues{};
+                SortAlg(trackSortValues, sortValues);
                 break;
             }
         }
@@ -271,8 +292,8 @@ public:
         window_track_list_widgets[WIDX_FILTER_STRING].string = _filterString;
         widgets = window_track_list_widgets;
         enabled_widgets = (1ULL << WIDX_CLOSE) | (1ULL << WIDX_FILTER_STRING) | (1ULL << WIDX_FILTER_CLEAR)
-            | (1ULL << WIDX_ROTATE) | (1ULL << WIDX_TOGGLE_SCENERY) | (1ULL << WIDX_SORT_TRACKS) | (1ULL << WIDX_SORT_TYPE)
-            | (1ULL << WIDX_SORT_TYPE_DROPDOWN);
+            | (1ULL << WIDX_ROTATE) | (1ULL << WIDX_TOGGLE_SCENERY)  | (1ULL << WIDX_SORT_TYPE)
+            | (1ULL << WIDX_SORT_TYPE_DROPDOWN) | (1ULL << WIDX_SORT_TRACKS);
 
         if (gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)
         {
