@@ -61,9 +61,9 @@ static rct_widget window_track_list_widgets[] = {
     MakeWidget({224,  18}, {372, 219}, WindowWidgetType::FlatBtn,      WindowColour::Primary                                                                ),
     MakeWidget({572, 405}, { ROTATE_AND_SCENERY_BUTTON_SIZE, ROTATE_AND_SCENERY_BUTTON_SIZE}, WindowWidgetType::FlatBtn,      WindowColour::Primary  , SPR_ROTATE_ARROW,        STR_ROTATE_90_TIP                  ),
     MakeWidget({572, 381}, { ROTATE_AND_SCENERY_BUTTON_SIZE, ROTATE_AND_SCENERY_BUTTON_SIZE}, WindowWidgetType::FlatBtn,      WindowColour::Primary  , SPR_SCENERY,             STR_TOGGLE_SCENERY_TIP             ),
-    MakeWidget({  4,  46}, {162,  12}, WindowWidgetType::DropdownMenu, WindowColour::Secondary                                                                ), // current sort type
-    MakeWidget({155,  47}, { 11,  10}, WindowWidgetType::Button,   WindowColour::Secondary, STR_DROPDOWN_GLYPH), // track sort dropdown button
-    MakeWidget({168,  46}, { 54,  12}, WindowWidgetType::Button,   WindowColour::Secondary, STR_SORT), // sort button
+    MakeWidget({  4,  46}, {162,  12}, WindowWidgetType::DropdownMenu, WindowColour::Secondary), // current sort type WIDX_SORT_TYPE
+    MakeWidget({155,  47}, { 11,  10}, WindowWidgetType::Button,   WindowColour::Secondary, STR_DROPDOWN_GLYPH), // track sort dropdown button WIDX_SORT_TYPE_DROPDOWN
+    MakeWidget({168,  46}, { 54,  12}, WindowWidgetType::Button,   WindowColour::Secondary, STR_SORT_ARROW_UP), // sort button WIDX_SORT_TRACKS
     WIDGETS_END,
 };
 
@@ -71,16 +71,38 @@ static rct_widget window_track_list_widgets[] = {
 
 enum
 {
+    SORT_TYPE_NAME,
+    SORT_TYPE_COST,
     SORT_TYPE_EXCITEMENT,
     SORT_TYPE_INTENSITY,
     SORT_TYPE_NAUSEA,
+    SORT_TYPE_MAX_SPEED,
+    SORT_TYPE_AVERAGE_SPEED,
+    SORT_TYPE_RIDE_LENGTH,
+    SORT_TYPE_MAX_POSITIVE_LATERAL_G,
+    SORT_TYPE_MAX_NEGATIVE_LATERAL_G,
+    SORT_TYPE_MAX_LATERAL_G,
+    SORT_TYPE_DROPS,
+    SORT_TYPE_HIGHEST_DROP_HEIGHT,
+    SORT_TYPE_SPACE_REQUIRED,
     DROPDOWN_LIST_COUNT,
 };
 
 static constexpr const rct_string_id track_sort_type_string_mapping[DROPDOWN_LIST_COUNT] = {
-    STR_EXCITEMENT,
-    STR_INTENSITY,
-    STR_NAUSEA,
+    STR_SORT_NAME,
+    STR_SORT_COST,
+    STR_SORT_EXCITEMENT,
+    STR_SORT_INTENSITY,
+    STR_SORT_NAUSEA,
+    STR_SORT_MAX_SPEED,
+    STR_SORT_AVERAGE_SPEED,
+    STR_SORT_RIDE_LENGTH,
+    STR_SORT_MAX_POSITIVE_LATERAL_G,
+    STR_SORT_MAX_NEGATIVE_LATERAL_G,
+    STR_SORT_MAX_LATERAL_G,
+    STR_SORT_DROPS,
+    STR_SORT_HIGHEST_DROP_HEIGHT,
+    STR_SORT_SPACE_REQUIRED,
 };
 
 constexpr uint16_t TRACK_DESIGN_INDEX_UNLOADED = UINT16_MAX;
@@ -241,6 +263,22 @@ private:
         TrackDesign dummy{};
         switch (_trackSortType)
         {
+            case SORT_TYPE_NAME:
+            {
+                std::vector<std::pair<decltype(dummy.name), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
+                {
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back({ trackDesign.get()->name, i });
+                }
+                SortAlg(trackSortValues);
+                _sortAscending = !_sortAscending;
+                break;
+            }
+            case SORT_TYPE_COST:
+                break;
             case SORT_TYPE_EXCITEMENT:
             {
                 std::vector<std::pair<decltype(dummy.excitement), uint32_t>> trackSortValues{};
@@ -283,6 +321,24 @@ private:
                 _sortAscending = !_sortAscending;
                 break;
             }
+            case SORT_TYPE_MAX_SPEED:
+                break;
+            case SORT_TYPE_AVERAGE_SPEED:
+                break;
+            case SORT_TYPE_RIDE_LENGTH:
+                break;
+            case SORT_TYPE_MAX_POSITIVE_LATERAL_G:
+                break;
+            case SORT_TYPE_MAX_NEGATIVE_LATERAL_G:
+                break;
+            case SORT_TYPE_MAX_LATERAL_G:
+                break;
+            case SORT_TYPE_DROPS:
+                break;
+            case SORT_TYPE_HIGHEST_DROP_HEIGHT:
+                break;
+            case SORT_TYPE_SPACE_REQUIRED:
+                break;
         }
     }
 
@@ -324,7 +380,7 @@ public:
         _loadedTrackDesign = nullptr;
         _loadedTrackDesignIndex = TRACK_DESIGN_INDEX_UNLOADED;
 
-        _trackSortType = SORT_TYPE_EXCITEMENT;
+        _trackSortType = SORT_TYPE_NAME;
         _sortAscending = true;
     }
 
@@ -404,8 +460,6 @@ public:
                 Invalidate();
                 break;
             case WIDX_SORT_TRACKS:
-                // list_information_type = _trackSortType; ~hjort96 probably not...
-                // selected_list_item = -1;
                 SortList();
                 Invalidate();
                 break;
@@ -423,7 +477,7 @@ public:
             int32_t numItems = 0;
             int32_t selectedIndex = -1;
 
-            for (int32_t type = SORT_TYPE_EXCITEMENT; type <= lastType; type++)
+            for (int32_t type = SORT_TYPE_NAME; type <= lastType; type++)
             {
                 if (type == _trackSortType)
                 {
@@ -451,7 +505,7 @@ public:
             if (dropdownIndex == -1)
                 return;
 
-            int32_t sortType = SORT_TYPE_EXCITEMENT;
+            int32_t sortType = SORT_TYPE_NAME; // Has to be first one in list
             uint32_t arg = static_cast<uint32_t>(gDropdownItemsArgs[dropdownIndex]);
             for (size_t i = 0; i < std::size(track_sort_type_string_mapping); i++)
             {
@@ -524,6 +578,7 @@ public:
     void OnPrepareDraw() override
     {
         widgets[WIDX_SORT_TYPE].text = track_sort_type_string_mapping[_trackSortType];
+        widgets[WIDX_SORT_TRACKS].text = _sortAscending ? STR_SORT_ARROW_UP : STR_SORT_ARROW_DOWN;
 
         rct_string_id stringId = STR_NONE;
         rct_ride_entry* entry = get_ride_entry(_window_track_list_item.EntryIndex);

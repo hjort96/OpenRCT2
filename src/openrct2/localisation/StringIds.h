@@ -3915,9 +3915,22 @@ enum : uint16_t
 
     STR_UNSUPPORTED_OBJECT_FORMAT = 6459,
 
-    STR_EXCITEMENT = 6460,
-    STR_INTENSITY = 6461,
-    STR_NAUSEA = 6462,
+    STR_SORT_ARROW_UP = 6460,
+    STR_SORT_ARROW_DOWN = 6461,
+    STR_SORT_NAME = 6462,
+    STR_SORT_COST = 6463,
+    STR_SORT_EXCITEMENT = 6464,
+    STR_SORT_INTENSITY = 6465,
+    STR_SORT_NAUSEA= 6466,
+    STR_SORT_MAX_SPEED = 6467,
+    STR_SORT_AVERAGE_SPEED = 6468,
+    STR_SORT_RIDE_LENGTH = 6469,
+    STR_SORT_MAX_POSITIVE_LATERAL_G = 6470,
+    STR_SORT_MAX_NEGATIVE_LATERAL_G = 6471,
+    STR_SORT_MAX_LATERAL_G = 6472,
+    STR_SORT_DROPS = 6473,
+    STR_SORT_HIGHEST_DROP_HEIGHT = 6474,
+    STR_SORT_SPACE_REQUIRED = 6475,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings
