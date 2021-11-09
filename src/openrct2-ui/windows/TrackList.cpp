@@ -98,6 +98,7 @@ private:
     std::vector<uint8_t> _trackDesignPreviewPixels;
 
     int32_t _trackSortType;
+    bool _sortAscending;
 
     void FilterList()
     {
@@ -219,20 +220,18 @@ private:
         return false;
     }
 
-    template<typename T> void SortAlg(const std::vector<T>& trackSortValues, std::vector<std::pair<T, uint32_t>>& sortValues)
+    template<typename T> void SortAlg(std::vector<std::pair<T, uint32_t>>& trackSortValues)
     {
-        for (uint32_t i{ 0 }; i < trackSortValues.size(); ++i)
-            sortValues.push_back({ trackSortValues[i], i });
-
+        const bool sortAscending = _sortAscending;
         std::sort(
-            std::begin(sortValues), std::end(sortValues),
-            [](const auto& p1, const auto& p2) -> bool {
-                return p1.first > p2.first;
+            std::begin(trackSortValues), std::end(trackSortValues),
+            [sortAscending](const auto& p1, const auto& p2) -> bool {
+                return sortAscending ? p1.first > p2.first : p1.first < p2.first;
             });
 
         std::vector<track_design_file_ref> sortedTrackDesigns{};
-        for (uint32_t i{ 0 }; i < sortValues.size(); ++i)
-            sortedTrackDesigns.push_back(_trackDesigns[sortValues[i].second]); 
+        for (uint32_t i{ 0 }; i < trackSortValues.size(); ++i)
+            sortedTrackDesigns.push_back(_trackDesigns[trackSortValues[i].second]); 
 
         std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
     }
@@ -244,42 +243,44 @@ private:
         {
             case SORT_TYPE_EXCITEMENT:
             {
-                std::vector<decltype(dummy.excitement)> trackSortValues{};
-                for (auto&& t : _trackDesigns)
+                std::vector<std::pair<decltype(dummy.excitement), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
                 {
-                    const auto& trackDesign{ track_design_open(t.path) };
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
                     if (trackDesign != nullptr)
-                        trackSortValues.push_back(trackDesign.get()->excitement);
+                        trackSortValues.push_back({ trackDesign.get()->excitement, i });
                 }
-                std::vector<std::pair<decltype(dummy.excitement), uint32_t>> sortValues{};
-                SortAlg(trackSortValues, sortValues);
+                SortAlg(trackSortValues);
+                _sortAscending = !_sortAscending;
                 break;
             }
             case SORT_TYPE_INTENSITY:
             {
-
-                std::vector<decltype(dummy.intensity)> trackSortValues{};
-                for (auto&& t : _trackDesigns)
+                std::vector<std::pair<decltype(dummy.intensity), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
                 {
-                    const auto& trackDesign{ track_design_open(t.path) };
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
                     if (trackDesign != nullptr)
-                        trackSortValues.push_back(trackDesign.get()->intensity);
+                        trackSortValues.push_back({ trackDesign.get()->intensity, i });
                 }
-                std::vector<std::pair<decltype(dummy.intensity), uint32_t>> sortValues{};
-                SortAlg(trackSortValues, sortValues);
+                SortAlg(trackSortValues);
+                _sortAscending = !_sortAscending;
                 break;
             }
             case SORT_TYPE_NAUSEA:
             {
-                std::vector<decltype(dummy.nausea)> trackSortValues{};
-                for (auto&& t : _trackDesigns)
+                std::vector<std::pair<decltype(dummy.nausea), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
                 {
-                    const auto& trackDesign{ track_design_open(t.path) };
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
                     if (trackDesign != nullptr)
-                        trackSortValues.push_back(trackDesign.get()->nausea);
+                        trackSortValues.push_back({ trackDesign.get()->nausea, i });
                 }
-                std::vector<std::pair<decltype(dummy.nausea), uint32_t>> sortValues{};
-                SortAlg(trackSortValues, sortValues);
+                SortAlg(trackSortValues);
+                _sortAscending = !_sortAscending;
                 break;
             }
         }
@@ -324,6 +325,7 @@ public:
         _loadedTrackDesignIndex = TRACK_DESIGN_INDEX_UNLOADED;
 
         _trackSortType = SORT_TYPE_EXCITEMENT;
+        _sortAscending = true;
     }
 
     void OnClose() override
