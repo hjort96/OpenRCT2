@@ -3667,8 +3667,8 @@ STR_6466    :Nausea
 STR_6467    :Max. speed
 STR_6468    :Average speed
 STR_6469    :Ride length
-STR_6470    :Max. positive lateral Gs
-STR_6471    :Max. negative lateral Gs
+STR_6470    :Max. positive vertical Gs
+STR_6471    :Max. negative vertical Gs
 STR_6472    :Max. lateral Gs
 STR_6473    :Drops
 STR_6474    :Highest drop height
