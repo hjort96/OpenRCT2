@@ -277,7 +277,7 @@ private:
                 break;
             }
             case SORT_TYPE_COST:
-            {   // Wrong variable
+            {   // Correct variable but value is always 0.
                 std::vector<std::pair<decltype(dummy.cost), uint32_t>> trackSortValues{};
                 for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
                 {
@@ -489,7 +489,7 @@ public:
         _loadedTrackDesignIndex = TRACK_DESIGN_INDEX_UNLOADED;
 
         _trackSortType = SORT_TYPE_NAME;
-        _sortAscending = true;
+        _sortAscending = false;
     }
 
     void OnClose() override
@@ -568,8 +568,8 @@ public:
                 Invalidate();
                 break;
             case WIDX_SORT_TRACKS:
-                SortList();
                 _sortAscending = !_sortAscending;
+                SortList();
                 Invalidate();
                 break;
         }
@@ -625,6 +625,7 @@ public:
             }
 
             _trackSortType = sortType;
+            SortList();
             Invalidate();
         }
     }
@@ -687,7 +688,7 @@ public:
     void OnPrepareDraw() override
     {
         widgets[WIDX_SORT_TYPE].text = track_sort_type_string_mapping[_trackSortType];
-        widgets[WIDX_SORT_TRACKS].text = _sortAscending ? STR_SORT_ARROW_UP : STR_SORT_ARROW_DOWN;
+        widgets[WIDX_SORT_TRACKS].text = _sortAscending ? STR_SORT_ARROW_DOWN : STR_SORT_ARROW_UP;
 
         rct_string_id stringId = STR_NONE;
         rct_ride_entry* entry = get_ride_entry(_window_track_list_item.EntryIndex);
