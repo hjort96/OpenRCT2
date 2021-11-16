@@ -3673,7 +3673,8 @@ STR_6472    :Max. lateral Gs
 STR_6473    :Drops
 STR_6474    :Highest drop height
 STR_6475    :Space required
-
+STR_6476    :Holes
+STR_6477    :Total 'air' time
 
 #############
 # Scenarios #

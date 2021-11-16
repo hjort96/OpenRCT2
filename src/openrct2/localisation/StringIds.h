@@ -3931,6 +3931,8 @@ enum : uint16_t
     STR_SORT_DROPS = 6473,
     STR_SORT_HIGHEST_DROP_HEIGHT = 6474,
     STR_SORT_SPACE_REQUIRED = 6475,
+    STR_SORT_HOLES = 6476,
+    STR_SORT_TOTAL_AIR_TIME = 6477,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings

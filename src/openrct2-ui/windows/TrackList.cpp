@@ -72,37 +72,41 @@ static rct_widget window_track_list_widgets[] = {
 enum
 {
     SORT_TYPE_NAME,
-    SORT_TYPE_COST,
     SORT_TYPE_EXCITEMENT,
     SORT_TYPE_INTENSITY,
     SORT_TYPE_NAUSEA,
     SORT_TYPE_MAX_SPEED,
     SORT_TYPE_AVERAGE_SPEED,
+    SORT_TYPE_HOLES,
     SORT_TYPE_RIDE_LENGTH,
     SORT_TYPE_MAX_POSITIVE_VERTICAL_G,
     SORT_TYPE_MAX_NEGATIVE_VERTICAL_G,
     SORT_TYPE_MAX_LATERAL_G,
+    SORT_TYPE_TOTAL_AIR_TIME,
     SORT_TYPE_DROPS,
     SORT_TYPE_HIGHEST_DROP_HEIGHT,
     SORT_TYPE_SPACE_REQUIRED,
+    SORT_TYPE_COST,
     DROPDOWN_LIST_COUNT,
 };
 
 static constexpr const rct_string_id track_sort_type_string_mapping[DROPDOWN_LIST_COUNT] = {
     STR_SORT_NAME,
-    STR_SORT_COST,
     STR_SORT_EXCITEMENT,
     STR_SORT_INTENSITY,
     STR_SORT_NAUSEA,
     STR_SORT_MAX_SPEED,
     STR_SORT_AVERAGE_SPEED,
+    STR_SORT_HOLES,
     STR_SORT_RIDE_LENGTH,
     STR_SORT_MAX_POSITIVE_VERTICAL_G,
     STR_SORT_MAX_NEGATIVE_VERTICAL_G,
     STR_SORT_MAX_LATERAL_G,
+    STR_SORT_TOTAL_AIR_TIME,
     STR_SORT_DROPS,
     STR_SORT_HIGHEST_DROP_HEIGHT,
     STR_SORT_SPACE_REQUIRED,
+    STR_SORT_COST,
 };
 
 constexpr uint16_t TRACK_DESIGN_INDEX_UNLOADED = UINT16_MAX;
@@ -276,19 +280,6 @@ private:
                 SortAlg(trackSortValues);
                 break;
             }
-            case SORT_TYPE_COST:
-            {   // Correct variable but value is always 0.
-                std::vector<std::pair<decltype(dummy.cost), uint32_t>> trackSortValues{};
-                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
-                {
-                    const auto& trackDesignFileRef{ _trackDesigns[i] };
-                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
-                    if (trackDesign != nullptr)
-                        trackSortValues.push_back({ trackDesign.get()->cost, i });
-                }
-                SortAlg(trackSortValues);
-                break;
-            }
             case SORT_TYPE_EXCITEMENT:
             {
                 std::vector<std::pair<decltype(dummy.excitement), uint32_t>> trackSortValues{};
@@ -354,6 +345,19 @@ private:
                 SortAlg(trackSortValues);
                 break;
             }
+            case SORT_TYPE_HOLES:
+            {
+                std::vector<std::pair<decltype(dummy.holes), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
+                {
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back({ trackDesign.get()->holes, i });
+                }
+                SortAlg(trackSortValues);
+                break;
+            }
             case SORT_TYPE_RIDE_LENGTH:
             {
                 std::vector<std::pair<decltype(dummy.ride_length), uint32_t>> trackSortValues{};
@@ -406,6 +410,19 @@ private:
                 SortAlg(trackSortValues);
                 break;
             }
+            case SORT_TYPE_TOTAL_AIR_TIME:
+            {   
+                std::vector<std::pair<decltype(dummy.total_air_time), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
+                {
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back({ trackDesign.get()->total_air_time, i });
+                }
+                SortAlg(trackSortValues);
+                break;
+            }
             case SORT_TYPE_DROPS:
             {   
                 std::vector<std::pair<decltype(dummy.drops), uint32_t>> trackSortValues{};
@@ -443,6 +460,19 @@ private:
                         trackSortValues.push_back( // Compare area
                             { static_cast<uint32_t>(trackDesign.get()->space_required_x)
                             * static_cast<uint32_t>(trackDesign.get()->space_required_y), i });
+                }
+                SortAlg(trackSortValues);
+                break;
+            }
+            case SORT_TYPE_COST:
+            {   // Correct variable but value is always 0.
+                std::vector<std::pair<decltype(dummy.cost), uint32_t>> trackSortValues{};
+                for (uint32_t i{ 0 }; i < _trackDesigns.size(); ++i)
+                {
+                    const auto& trackDesignFileRef{ _trackDesigns[i] };
+                    const auto& trackDesign{ TrackDesignImport(trackDesignFileRef.path) };
+                    if (trackDesign != nullptr)
+                        trackSortValues.push_back({ trackDesign.get()->cost, i });
                 }
                 SortAlg(trackSortValues);
                 break;
