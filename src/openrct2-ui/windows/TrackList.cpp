@@ -257,8 +257,7 @@ private:
 
         std::vector<track_design_file_ref> sortedTrackDesigns{};
         for (uint32_t i{ 0 }; i < trackSortValues.size(); ++i)
-            sortedTrackDesigns.push_back(_trackDesigns[trackSortValues[i].second]); 
-
+            sortedTrackDesigns.push_back(_trackDesigns[trackSortValues[i].second]);
         std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
     }
 
