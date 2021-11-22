@@ -71,7 +71,137 @@ static rct_widget window_track_list_widgets[] = {
 
 enum
 {
-    SORT_TYPE_NAME,
+    /* Shops and stalls */
+    SORT_SHOP_NAME = 0,
+    SORT_SHOP_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT_SHOP,
+
+    /* Minigolf */
+    SORT_MG_NAME = 0,
+    SORT_MG_SPACE_REQUIRED,
+    SORT_MG_HOLES,
+    DROPDOWN_LIST_COUNT_MG,
+
+    /* Roller coasters, Ghost trains */
+    SORT_RC_NAME = 0,
+    SORT_RC_EXCITEMENT,
+    SORT_RC_INTENSITY,
+    SORT_RC_NAUSEA,
+    SORT_RC_MAX_SPEED,
+    SORT_RC_AVERAGE_SPEED,
+    SORT_RC_RIDE_LENGTH,
+    SORT_RC_MAX_POSITIVE_VERTICAL_G,
+    SORT_RC_MAX_NEGATIVE_VERTICAL_G,
+    SORT_RC_MAX_LATERAL_G,
+    SORT_RC_TOTAL_AIR_TIME,
+    SORT_RC_DROPS,
+    SORT_RC_HIGHEST_DROP_HEIGHT,
+    SORT_RC_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT_RC,
+
+    /* Dinghy, River rapids, Splash boats */
+    SORT_DRS_NAME = 0,
+    SORT_DRS_EXCITEMENT,
+    SORT_DRS_INTENSITY,
+    SORT_DRS_NAUSEA,
+    SORT_DRS_MAX_SPEED,
+    SORT_DRS_AVERAGE_SPEED,
+    SORT_DRS_RIDE_LENGTH,
+    SORT_DRS_DROPS,
+    SORT_DRS_HIGHEST_DROP_HEIGHT,
+    SORT_DRS_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT_DRS,
+
+    /* Transport, tower rides, tracked gentle/thrill, other water */
+    SORT_TW_NAME = 0,
+    SORT_TW_EXCITEMENT,
+    SORT_TW_INTENSITY,
+    SORT_TW_NAUSEA,
+    SORT_TW_MAX_SPEED,
+    SORT_TW_AVERAGE_SPEED,
+    SORT_TW_RIDE_LENGTH,
+    SORT_TW_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT_TW,
+
+    /* Flat rides */
+    SORT_FR_NAME = 0,
+    SORT_FR_EXCITEMENT,
+    SORT_FR_INTENSITY,
+    SORT_FR_NAUSEA,
+    SORT_FR_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT_FR,
+};
+
+static constexpr const rct_string_id shop_sort_type_string_mapping[DROPDOWN_LIST_COUNT_SHOP] = {
+    /* Shops and stalls */
+    STR_SORT_NAME,
+    STR_SORT_SPACE_REQUIRED,
+
+};
+static constexpr const rct_string_id mg_sort_type_string_mapping[DROPDOWN_LIST_COUNT_MG] = {
+
+    /* Minigolf */
+    STR_SORT_NAME,
+    STR_SORT_SPACE_REQUIRED,
+    STR_SORT_HOLES,
+
+};
+static constexpr const rct_string_id rc_sort_type_string_mapping[DROPDOWN_LIST_COUNT_RC] = {
+
+    /* Roller coasters, Ghost trains */
+    STR_SORT_NAME,
+    STR_SORT_EXCITEMENT,
+    STR_SORT_INTENSITY,
+    STR_SORT_NAUSEA,
+    STR_SORT_MAX_SPEED,
+    STR_SORT_AVERAGE_SPEED,
+    STR_SORT_RIDE_LENGTH,
+    STR_SORT_MAX_POSITIVE_VERTICAL_G,
+    STR_SORT_MAX_NEGATIVE_VERTICAL_G,
+    STR_SORT_MAX_LATERAL_G,
+    STR_SORT_TOTAL_AIR_TIME,
+    STR_SORT_DROPS,
+    STR_SORT_HIGHEST_DROP_HEIGHT,
+
+};
+static constexpr const rct_string_id drs_sort_type_string_mapping[DROPDOWN_LIST_COUNT_DRS] = {
+
+    /* Dinghy, River rapids, Splash boats */
+    STR_SORT_NAME,
+    STR_SORT_EXCITEMENT,
+    STR_SORT_INTENSITY,
+    STR_SORT_NAUSEA,
+    STR_SORT_MAX_SPEED,
+    STR_SORT_AVERAGE_SPEED,
+    STR_SORT_RIDE_LENGTH,
+    STR_SORT_DROPS,
+    STR_SORT_HIGHEST_DROP_HEIGHT,
+    STR_SORT_SPACE_REQUIRED,
+};
+static constexpr const rct_string_id tw_sort_type_string_mapping[DROPDOWN_LIST_COUNT_TW] = {
+    /* Transport, tower rides, tracked gentle/thrill, other water */
+    STR_SORT_NAME,
+    STR_SORT_EXCITEMENT,
+    STR_SORT_INTENSITY,
+    STR_SORT_NAUSEA,
+    STR_SORT_MAX_SPEED,
+    STR_SORT_AVERAGE_SPEED,
+    STR_SORT_RIDE_LENGTH,
+    STR_SORT_SPACE_REQUIRED,
+
+};
+static constexpr const rct_string_id fr_sort_type_string_mapping[DROPDOWN_LIST_COUNT_FR] = {
+    /* Flat rides */
+    STR_SORT_NAME,
+    STR_SORT_EXCITEMENT,
+    STR_SORT_INTENSITY,
+    STR_SORT_NAUSEA,
+    STR_SORT_SPACE_REQUIRED,
+};
+
+enum
+{
+    SORT_TYPE_NAME = 0,
     SORT_TYPE_EXCITEMENT,
     SORT_TYPE_INTENSITY,
     SORT_TYPE_NAUSEA,
