@@ -138,6 +138,7 @@ static constexpr const rct_string_id shop_sort_type_string_mapping[DROPDOWN_LIST
     STR_SORT_SPACE_REQUIRED,
 
 };
+
 static constexpr const rct_string_id mg_sort_type_string_mapping[DROPDOWN_LIST_COUNT_MG - SORT_MG_NAME] = {
     /* Minigolf */
     STR_SORT_NAME,
@@ -252,12 +253,12 @@ private:
     std::unique_ptr<TrackDesign> _loadedTrackDesign;
     std::vector<uint8_t> _trackDesignPreviewPixels;
 
-    int32_t _trackSortType;
-    int32_t _currentSortType;
-    int32_t _currentLastType;
-    int32_t _currentDropDownSelection;
-    bool _sortAscending;
-    const rct_string_id* _trackSortTypeStringMapping;
+    int32_t _trackSortType; // Current selected type to sort tracks on.
+    int32_t _currentFirstType; // Stores enum value that represents the first type in the current dropdown.
+    int32_t _currentLastType; // Stores enum value that represents the last + 1 type in the current dropdown.
+    int32_t _currentDropDownSelection; // Index that maps correct string to currently selected type to sort on.
+    bool _sortAscending; // Decides if tracks are sorted in ascending or descending order.
+    const rct_string_id* _trackSortTypeStringMapping; // Pointer to array of rct_string_id that is displayed.
 
     void FilterList()
     {
@@ -379,6 +380,19 @@ private:
         return false;
     }
 
+    /**
+     * trackSortValues: a vector of pairs where the first value in each pair is the value that is to be sorted,
+     * and the second value in each pair is the index of the track_design_file_ref from _trackDesigns that stored the value.
+     *
+     * std::sort is used to sort trackSortValues on the first value in each pair.
+     *
+     * sortedTrackDesigns is created as a temporary vector to hold the track_design_file_ref's.
+     * Since the old index is known (second value of each pair in trackSortValues),
+     * and the new (sorted) index is known (index of each pair after trackSortValues is sorted),
+     * it is possible construct sortedTrackDesigns by iterating through trackSortValues once.
+     *
+     * Values in sortedTrackDesigns is then moved to _trackDesign.
+     */
     template<typename T> void SortAlg(std::vector<std::pair<T, uint32_t>>& trackSortValues)
     {
         const bool sortAscending = _sortAscending;
@@ -394,6 +408,20 @@ private:
         std::move(sortedTrackDesigns.begin(), sortedTrackDesigns.end(), _trackDesigns.begin());
     }
 
+    /**
+     * In each case a vector called trackSortValues is constructed.
+     * This vector holds pairs where the first value in each pair is the value that is to be sorted,
+     * and the second value in each pair is the index of the track_design_file_ref from _trackDesigns that stored the value.
+     * trackSortValues is sent to SortAlg to perform the actual sorting.
+     *
+     * Motivation:
+     * By constructing trackSortValues it is only necessary to load each TrackDesign from disk once.
+     * This is desirable since std::sort is later used to sort trackSortValues.
+     * std::sort sorts a vector in O(n*log(n)), where n is the size of the vector.
+     * If std::sort was used directly on _trackDesigns, the game would have to load each TrackDesign several times from disk,
+     * which is expensive.
+     * ~hjort96
+     */
     void SortList()
     {
         TrackDesign dummy{};
@@ -792,7 +820,7 @@ public:
 
             // for (int32_t type = SORT_TYPE_NAME; type <= lastType; type++)
             int32_t strMapping = 0;
-            for (int32_t type = _currentSortType; type <= lastType; type++)
+            for (int32_t type = _currentFirstType; type <= lastType; type++)
             {
                 if (type == _trackSortType)
                 {
@@ -801,7 +829,7 @@ public:
 
                 gDropdownItemsFormat[numItems] = STR_DROPDOWN_MENU_LABEL;
                 // gDropdownItemsArgs[numItems] = track_sort_type_string_mapping[type];
-                strMapping = type - _currentSortType;
+                strMapping = type - _currentFirstType;
                 gDropdownItemsArgs[numItems] = _trackSortTypeStringMapping[strMapping];
                 numItems++;
             }
@@ -823,14 +851,14 @@ public:
                 return;
 
             //int32_t sortType = SORT_TYPE_NAME; // Has to be first one in list
-            int32_t sortType = _currentSortType;
+            int32_t sortType = _currentFirstType;
             uint32_t arg = static_cast<uint32_t>(gDropdownItemsArgs[dropdownIndex]);
             // for (size_t i = 0; i < std::size(track_sort_type_string_mapping); i++)
             int32_t strMapping = 0;
-            for (int32_t type = _currentSortType; type <= (_currentLastType - 1); type++)
+            for (int32_t type = _currentFirstType; type <= (_currentLastType - 1); type++)
             {
                 // if (arg == track_sort_type_string_mapping[i])
-                strMapping = type - _currentSortType;
+                strMapping = type - _currentFirstType;
                 if (arg == _trackSortTypeStringMapping[strMapping])
                 {
                     // sortType = static_cast<int32_t>(i);
@@ -1291,44 +1319,45 @@ public:
         switch (item.Type)
         {
             // Roller coasters
-            case 4:
-            case 9:
+            case 4: // Junior Roller Coasters
+            case 9: // Wooden Wild Mouse
             case 50: // Ghost Train
-            case 52:
-            case 54:
-            case 87:
-            case 88:
+            case 52: // Wooden Roller Coasters
+            case 54: // Steel Wild Mouse
+            case 87: // Mini Roller Coasters
+            case 88: // Mine Ride
                 _trackSortTypeStringMapping = rc_sort_type_string_mapping;
-                _currentSortType = SORT_RC_NAME;
+                _currentFirstType = SORT_RC_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT_RC;
                 break;
 
             // Gentle Rides
-            case 72:
-            case 20:
-            case 11:
-            case 61:
+            case 6: // Monorail
+            case 11: // Car ride
+            case 20: // Maze
+            case 61: // Mini Helicopters
+            case 72: // Monorail Cycles
                 _trackSortTypeStringMapping = tw_sort_type_string_mapping;
-                _currentSortType = SORT_TW_NAME;
+                _currentFirstType = SORT_TW_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT_TW;
                 break;
 
             // Water Rides
-            case 23:
+            case 23: // Log Flume
                 _trackSortTypeStringMapping = drs_sort_type_string_mapping;
-                _currentSortType = SORT_DRS_NAME;
+                _currentFirstType = SORT_DRS_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT_DRS;
                 break;
 
-            case 67:
+            case 67: // Minigolf
                 _trackSortTypeStringMapping = mg_sort_type_string_mapping;
-                _currentSortType = SORT_MG_NAME;
+                _currentFirstType = SORT_MG_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT_MG;
                 break;
 
             default:
                 _trackSortTypeStringMapping = track_sort_type_string_mapping;
-                _currentSortType = SORT_TYPE_NAME;
+                _currentFirstType = SORT_TYPE_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT;
                 break;
         }
