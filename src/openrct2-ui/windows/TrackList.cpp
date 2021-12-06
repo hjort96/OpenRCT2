@@ -130,6 +130,24 @@ enum
     SORT_FR_NAUSEA,
     SORT_FR_SPACE_REQUIRED,
     DROPDOWN_LIST_COUNT_FR,
+
+    /* Default list */
+    SORT_TYPE_NAME,
+    SORT_TYPE_EXCITEMENT,
+    SORT_TYPE_INTENSITY,
+    SORT_TYPE_NAUSEA,
+    SORT_TYPE_MAX_SPEED,
+    SORT_TYPE_AVERAGE_SPEED,
+    SORT_TYPE_HOLES,
+    SORT_TYPE_RIDE_LENGTH,
+    SORT_TYPE_MAX_POSITIVE_VERTICAL_G,
+    SORT_TYPE_MAX_NEGATIVE_VERTICAL_G,
+    SORT_TYPE_MAX_LATERAL_G,
+    SORT_TYPE_TOTAL_AIR_TIME,
+    SORT_TYPE_DROPS,
+    SORT_TYPE_HIGHEST_DROP_HEIGHT,
+    SORT_TYPE_SPACE_REQUIRED,
+    DROPDOWN_LIST_COUNT,
 };
 
 static constexpr const rct_string_id shop_sort_type_string_mapping[DROPDOWN_LIST_COUNT_SHOP - SORT_SHOP_NAME] = {
@@ -199,28 +217,8 @@ static constexpr const rct_string_id fr_sort_type_string_mapping[DROPDOWN_LIST_C
     STR_SORT_SPACE_REQUIRED,
 };
 
-enum
-{
-    SORT_TYPE_NAME = 0,
-    SORT_TYPE_EXCITEMENT,
-    SORT_TYPE_INTENSITY,
-    SORT_TYPE_NAUSEA,
-    SORT_TYPE_MAX_SPEED,
-    SORT_TYPE_AVERAGE_SPEED,
-    SORT_TYPE_HOLES,
-    SORT_TYPE_RIDE_LENGTH,
-    SORT_TYPE_MAX_POSITIVE_VERTICAL_G,
-    SORT_TYPE_MAX_NEGATIVE_VERTICAL_G,
-    SORT_TYPE_MAX_LATERAL_G,
-    SORT_TYPE_TOTAL_AIR_TIME,
-    SORT_TYPE_DROPS,
-    SORT_TYPE_HIGHEST_DROP_HEIGHT,
-    SORT_TYPE_SPACE_REQUIRED,
-    SORT_TYPE_COST,
-    DROPDOWN_LIST_COUNT,
-};
-
-static constexpr const rct_string_id track_sort_type_string_mapping[DROPDOWN_LIST_COUNT] = {
+static constexpr const rct_string_id default_sort_type_string_mapping[DROPDOWN_LIST_COUNT - SORT_TYPE_NAME] = {
+    /* Default list */
     STR_SORT_NAME,
     STR_SORT_EXCITEMENT,
     STR_SORT_INTENSITY,
@@ -236,7 +234,6 @@ static constexpr const rct_string_id track_sort_type_string_mapping[DROPDOWN_LIS
     STR_SORT_DROPS,
     STR_SORT_HIGHEST_DROP_HEIGHT,
     STR_SORT_SPACE_REQUIRED,
-    STR_SORT_COST,
 };
 
 constexpr uint16_t TRACK_DESIGN_INDEX_UNLOADED = UINT16_MAX;
@@ -252,13 +249,12 @@ private:
     uint16_t _loadedTrackDesignIndex;
     std::unique_ptr<TrackDesign> _loadedTrackDesign;
     std::vector<uint8_t> _trackDesignPreviewPixels;
-
     int32_t _trackSortType; // Current selected type to sort tracks on.
     int32_t _currentFirstType; // Stores enum value that represents the first type in the current dropdown.
     int32_t _currentLastType; // Stores enum value that represents the last + 1 type in the current dropdown.
     int32_t _currentDropDownSelection; // Index that maps correct string to currently selected type to sort on.
     bool _sortAscending; // Decides if tracks are sorted in ascending or descending order.
-    const rct_string_id* _trackSortTypeStringMapping; // Pointer to array of rct_string_id that is displayed.
+    const rct_string_id* _trackSortTypeStringMapping; // Pointer to array of rct_string_id that is displayed in dropdown.
 
     void FilterList()
     {
@@ -1333,6 +1329,7 @@ public:
 
             // Gentle Rides
             case 6: // Monorail
+            case 8: // Boat hire
             case 11: // Car ride
             case 20: // Maze
             case 61: // Mini Helicopters
@@ -1356,7 +1353,7 @@ public:
                 break;
 
             default:
-                _trackSortTypeStringMapping = track_sort_type_string_mapping;
+                _trackSortTypeStringMapping = default_sort_type_string_mapping;
                 _currentFirstType = SORT_TYPE_NAME;
                 _currentLastType = DROPDOWN_LIST_COUNT;
                 break;
